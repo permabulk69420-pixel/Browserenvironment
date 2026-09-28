@@ -6,13 +6,11 @@ It's a native Quest app built with Meta's Spatial SDK. The screen is an Android 
 
 ## Install
 
-1. Go to **[Releases → Latest build](../../releases/tag/latest)** and download `BrowserEnvironment.apk`.
-2. Install it on the Quest (developer mode on):
-   - **SideQuest:** drag the APK onto the window, or
-   - **adb:** `adb install -r BrowserEnvironment.apk`
-3. On the headset: **App Library → filter "Unknown Sources" → Browser Environment**.
+1. In the Quest Browser, open **[Releases → Latest build](../../releases/tag/latest)** and download `BrowserEnvironment.apk`.
+2. Install the APK on the headset.
+3. Launch it from **App Library → Unknown Sources → Browser Environment**.
 
-Every push to `main` builds a new APK automatically and replaces the one on the Latest release. All builds use the same signing key, so new ones install straight over the old one (your cookies/logins stay).
+Every push to `main` posts a new APK to the Latest release. Download it and install over the old one, and your logins stay.
 
 ## Using it
 
