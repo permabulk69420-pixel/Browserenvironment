@@ -33,6 +33,7 @@ import com.meta.spatial.toolkit.Transform
 import com.meta.spatial.toolkit.UIPanelSettings
 import com.meta.spatial.toolkit.createPanelEntity
 import com.meta.spatial.toolkit.fromBox
+import com.meta.spatial.vr.LocomotionSystem
 import com.meta.spatial.vr.VRFeature
 
 /**
@@ -54,6 +55,9 @@ class BrowserActivity : AppSystemActivity() {
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
     BrowserState.init(this)
+    // No teleport / snap turn: swap the SDK's default locomotion for smooth movement.
+    systemManager.unregisterSystem<LocomotionSystem>()
+    systemManager.registerSystem(SmoothLocomotionSystem())
   }
 
   override fun onSceneReady() {
