@@ -75,7 +75,7 @@ class BrowserActivity : AppSystemActivity() {
     browserEntity =
         Entity.createPanelEntity(
             R.id.browser_panel,
-            Transform(Pose(Vector3(0f, SCREEN_CENTER_Y, SCREEN_DISTANCE), Quaternion(0f, 180f, 0f))),
+            Transform(Pose(Vector3(0f, SCREEN_CENTER_Y, SCREEN_DISTANCE), Quaternion(0f, 0f, 0f))),
             Grabbable(true, GrabbableType.FACE),
             Scale(Vector3(1f)),
         )
