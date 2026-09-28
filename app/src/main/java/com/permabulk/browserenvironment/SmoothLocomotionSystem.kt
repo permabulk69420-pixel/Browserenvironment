@@ -1,5 +1,6 @@
 package com.permabulk.browserenvironment
 
+import com.meta.spatial.core.Quaternion
 import com.meta.spatial.core.Query
 import com.meta.spatial.core.SystemBase
 import com.meta.spatial.core.Vector3
@@ -14,6 +15,15 @@ import kotlin.math.sqrt
  */
 class SmoothLocomotionSystem : SystemBase() {
   private var lastNanos = 0L
+
+  // Our own copy of the play-space origin. Only the sticks change it; the headset never
+  // writes to it (the SDK's updateViewOrigin re-bases on head pose every call, which made
+  // head movement fight the stick when called every frame).
+  private var ox = 0f
+  private var oy = 0f
+  private var oz = 0f
+  private var yaw = 0f
+  private var initialised = false
 
   override fun execute() {
     val now = System.nanoTime()
@@ -46,9 +56,25 @@ class SmoothLocomotionSystem : SystemBase() {
     if (turn == 0f && fwd == 0f && side == 0f) return
 
     val scene = getScene()
-    // Same calls the SDK's own locomotion uses: updateViewOrigin pivots around your head,
-    // and moves read the current origin/rotation back from the scene.
-    if (turn != 0f) scene.updateViewOrigin(0f, turn * TURN_DEG_PER_SEC * dt)
+    if (!initialised) {
+      val o = scene.getViewOrigin()
+      ox = o.x
+      oy = o.y
+      oz = o.z
+      yaw = scene.getViewSceneRotation()
+      initialised = true
+    }
+
+    if (turn != 0f) {
+      // Rotate the play space around your head, so you turn in place.
+      val delta = turn * TURN_DEG_PER_SEC * dt
+      val head = scene.getViewerPose().t
+      val offset = Vector3(ox - head.x, 0f, oz - head.z)
+      val rotated = Quaternion(0f, delta, 0f).times(offset)
+      ox = head.x + rotated.x
+      oz = head.z + rotated.z
+      yaw += delta
+    }
 
     if (fwd != 0f || side != 0f) {
       val head = scene.getViewerPose()
@@ -72,15 +98,12 @@ class SmoothLocomotionSystem : SystemBase() {
           mx /= ml
           mz /= ml
         }
-        val o = scene.getViewOrigin()
-        scene.setViewOrigin(
-            o.x + mx * MOVE_SPEED * dt,
-            o.y,
-            o.z + mz * MOVE_SPEED * dt,
-            scene.getViewSceneRotation(),
-        )
+        ox += mx * MOVE_SPEED * dt
+        oz += mz * MOVE_SPEED * dt
       }
     }
+
+    scene.setViewOrigin(ox, oy, oz, yaw)
   }
 
   companion object {
