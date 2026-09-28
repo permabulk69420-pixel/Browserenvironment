@@ -13,9 +13,6 @@ import kotlin.math.sqrt
  * The SDK only exposes stick directions as on/off bits, so speed is constant.
  */
 class SmoothLocomotionSystem : SystemBase() {
-  private var x = 0f
-  private var z = 0f
-  private var yawDeg = 0f
   private var lastNanos = 0L
 
   override fun execute() {
@@ -35,8 +32,8 @@ class SmoothLocomotionSystem : SystemBase() {
 
     // Turn
     var turn = 0f
-    if (held(ButtonBits.ButtonThumbRL)) turn += 1f
-    if (held(ButtonBits.ButtonThumbRR)) turn -= 1f
+    if (held(ButtonBits.ButtonThumbRR)) turn += 1f
+    if (held(ButtonBits.ButtonThumbRL)) turn -= 1f
 
     // Move
     var fwd = 0f
@@ -49,7 +46,9 @@ class SmoothLocomotionSystem : SystemBase() {
     if (turn == 0f && fwd == 0f && side == 0f) return
 
     val scene = getScene()
-    yawDeg += turn * TURN_DEG_PER_SEC * dt
+    // Same calls the SDK's own locomotion uses: updateViewOrigin pivots around your head,
+    // and moves read the current origin/rotation back from the scene.
+    if (turn != 0f) scene.updateViewOrigin(0f, turn * TURN_DEG_PER_SEC * dt)
 
     if (fwd != 0f || side != 0f) {
       val head = scene.getViewerPose()
@@ -73,12 +72,15 @@ class SmoothLocomotionSystem : SystemBase() {
           mx /= ml
           mz /= ml
         }
-        x += mx * MOVE_SPEED * dt
-        z += mz * MOVE_SPEED * dt
+        val o = scene.getViewOrigin()
+        scene.setViewOrigin(
+            o.x + mx * MOVE_SPEED * dt,
+            o.y,
+            o.z + mz * MOVE_SPEED * dt,
+            scene.getViewSceneRotation(),
+        )
       }
     }
-
-    scene.setViewOrigin(x, 0f, z, yawDeg)
   }
 
   companion object {
